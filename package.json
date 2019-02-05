@@ -2,7 +2,10 @@
   "name": "generator-rnboilerplate",
   "version": "1.0.0",
   "description": "generator",
-  "author": "lukasz",
+  "author": {
+    "name": "lukasz",
+    "email": "lukasz.chludzinski@gmail.com"
+  },
   "files": [
     "generators"
   ],
