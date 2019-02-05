@@ -1,19 +1,43 @@
 var Generator = require("yeoman-generator");
+const chalk = require("chalk");
+const yosay = require("yosay");
+const _ = require("lodash");
 
 module.exports = class extends Generator {
-  constructor(args, opts) {
-    // Calling the super constructor is important so our generator is correctly set up
-    super(args, opts);
+  prompting() {
+    // Have Yeoman greet the user.
+    this.log(
+      yosay(
+        `Welcome to the sensational ${chalk.red(
+          "generator-rnboilerplate"
+        )} generator!`
+      )
+    );
 
-    // Next, add your custom code
-    this.option("name"); // This method adds support for a `--name` flag
+    const prompts = [
+      {
+        type: "input",
+        name: "appName",
+        message: "app name",
+        default: this.appname
+      }
+    ];
+
+    return this.prompt(prompts).then(props => {
+      // To access props later use this.props.appName;
+      this.props = props;
+    });
   }
 
-  method1() {
-    this.log("method 1 just ran");
-  }
+  writing() {
+    this.log("app name : ", this.props.appName);
+    const readmeTpl = _.template(
+      this.fs.read(this.templatePath("dummyfile.txt"))
+    );
 
-  method2() {
-    this.log("method 2 just ran");
+    this.fs.write(
+      this.destinationPath("dummyfile.txt"),
+      readmeTpl({ appName: this.props.appName })
+    );
   }
 };
