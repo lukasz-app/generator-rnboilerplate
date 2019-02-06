@@ -1,11 +1,9 @@
 var Generator = require("yeoman-generator");
 const chalk = require("chalk");
 const yosay = require("yosay");
-const _ = require("lodash");
 
 module.exports = class extends Generator {
   prompting() {
-    // Have Yeoman greet the user.
     this.log(
       yosay(
         `Welcome to the sensational ${chalk.red(
@@ -20,24 +18,53 @@ module.exports = class extends Generator {
         name: "appName",
         message: "app name",
         default: this.appname
+      },
+      {
+        type: "input",
+        name: "author",
+        message: "Author",
+        default: "Lukasz Mistrz"
       }
     ];
 
     return this.prompt(prompts).then(props => {
-      // To access props later use this.props.appName;
       this.props = props;
+      this.log("app name : ", this.props.appName);
     });
   }
 
-  writing() {
-    this.log("app name : ", this.props.appName);
-    const readmeTpl = _.template(
-      this.fs.read(this.templatePath("dummyfile.txt"))
-    );
+  initRN() {
+    this.spawnCommandSync("react-native", [
+      "init",
+      this.props.appName,
+      "--template",
+      "typescript"
+    ]);
+  }
 
-    this.fs.write(
-      this.destinationPath("dummyfile.txt"),
-      readmeTpl({ appName: this.props.appName })
+  changeDirectory() {
+    this.destinationRoot(`${this.destinationRoot()}/${this.props.appName}`);
+  }
+
+  cleanUp() {
+    this.spawnCommandSync("node", ["setup.js"]);
+  }
+
+  writeReadme() {
+    this.fs.copyTpl(
+      this.templatePath("README.md"),
+      this.destinationPath("README.md"),
+      { appName: this.props.appName, author: this.props.author }
     );
+  }
+
+  createRepository() {
+    this.spawnCommandSync("git", ["init"]);
+    this.spawnCommandSync("git", ["add", "."]);
+    this.spawnCommandSync("git", ["commit", "-m", "init commit"]);
+  }
+
+  finishing() {
+    this.log("Happend!!!");
   }
 };

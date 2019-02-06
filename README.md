@@ -1,4 +1,4 @@
-## What is?
+# Rn Boilerplate Generator
 
 This is a react native biolerplate generator. It aims to speed up setting up rn project.
 
@@ -18,11 +18,19 @@ cd generator-rnboilerplate
 npm link
 ```
 
-Then generate your new project:
+Then run generator from parent directory of your future React Native project.
 
 ```bash
 yo rnboilerplate
 ```
+
+### This generator will automatically:
+
+create a new directory
+run `react-native init` in it
+create git repository
+commit created files
+... more to come
 
 ## Getting To Know Yeoman
 
