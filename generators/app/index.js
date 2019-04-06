@@ -1,7 +1,7 @@
 var Generator = require("yeoman-generator");
 const chalk = require("chalk");
 const yosay = require("yosay");
-
+const Git = require("./utils/git");
 module.exports = class extends Generator {
   prompting() {
     this.log(
@@ -16,8 +16,8 @@ module.exports = class extends Generator {
       {
         type: "input",
         name: "appName",
-        message: "app name",
-        default: this.appname
+        message: "Application name",
+        default: "mobileApplication"
       },
       {
         type: "input",
@@ -33,12 +33,18 @@ module.exports = class extends Generator {
     });
   }
 
+  initHelpers() {
+    this.git = new Git(this.spawnCommandSync);
+  }
+
   initRN() {
     this.spawnCommandSync("react-native", [
       "init",
       this.props.appName,
+      // "-package",
+      // "your.bundle.identifier",
       "--template",
-      "typescript"
+      "https://github.com/lukaszchopin/react-native-template-typescript"
     ]);
   }
 
@@ -46,8 +52,9 @@ module.exports = class extends Generator {
     this.destinationRoot(`${this.destinationRoot()}/${this.props.appName}`);
   }
 
-  cleanUp() {
-    this.spawnCommandSync("node", ["setup.js"]);
+  createRepository() {
+    this.git.init();
+    this.git.commit("Init commit");
   }
 
   writeReadme() {
@@ -58,13 +65,8 @@ module.exports = class extends Generator {
     );
   }
 
-  createRepository() {
-    this.spawnCommandSync("git", ["init"]);
-    this.spawnCommandSync("git", ["add", "."]);
-    this.spawnCommandSync("git", ["commit", "-m", "init commit"]);
-  }
-
   finishing() {
+    this.spawnCommandSync("code", ["."]);
     this.log("Happend!!!");
   }
 };

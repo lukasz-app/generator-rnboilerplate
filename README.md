@@ -27,9 +27,17 @@ yo rnboilerplate
 ### This generator will automatically:
 
 create a new directory
-run `react-native init` in it
+
+run `react-native init --template typescrit` (lukaszchopinfork) in it
+
+run cleaning script provided by prevoius command
+
 create git repository
+
 commit created files
+
+create README file
+
 ... more to come
 
 ## Getting To Know Yeoman
