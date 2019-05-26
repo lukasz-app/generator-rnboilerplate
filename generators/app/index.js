@@ -49,7 +49,11 @@ module.exports = class extends Generator {
 
   initHelpers() {
     this.git = new Git(this.spawnCommandSync);
-    this.androidUtils = new AndroidUtils(this.spawnCommandSync);
+    this.androidUtils = new AndroidUtils(
+      this.spawnCommandSync,
+      this.props.appName,
+      this.props.bundleId
+    );
     this.iosUtils = new IOSUtils(this.spawnCommandSync);
   }
 
@@ -77,10 +81,7 @@ module.exports = class extends Generator {
   }
 
   changePackageNameAndroid() {
-    this.androidUtils.changePackageName(
-      this.props.appName,
-      this.props.bundleId
-    );
+    this.androidUtils.changePackageName();
     this.git.commit("Changed android package name");
   }
 
