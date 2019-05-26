@@ -2,10 +2,8 @@ var Generator = require("yeoman-generator");
 const chalk = require("chalk");
 const yosay = require("yosay");
 const Git = require("./utils/git");
-const replace = require("replace-in-file");
-
-const defIOSBuindleIdentifier = "org.reactjs.native.example";
-const defAndroidPackageName = "com";
+const AndroidUtils = require("./utils/androidUtils");
+const IOSUtils = require("./utils/iosUtils");
 
 module.exports = class extends Generator {
   welcome() {
@@ -17,6 +15,7 @@ module.exports = class extends Generator {
       )
     );
   }
+
   prompting() {
     const prompts = [
       {
@@ -50,14 +49,14 @@ module.exports = class extends Generator {
 
   initHelpers() {
     this.git = new Git(this.spawnCommandSync);
+    this.androidUtils = new AndroidUtils(this.spawnCommandSync);
+    this.iosUtils = new IOSUtils(this.spawnCommandSync);
   }
 
   initRN() {
     this.spawnCommandSync("react-native", [
       "init",
       this.props.appName,
-      // "-package",
-      // "your.bundle.identifier",
       "--template",
       "https://github.com/lukaszchopin/react-native-template-typescript"
     ]);
@@ -73,75 +72,15 @@ module.exports = class extends Generator {
   }
 
   changeBundleIdIos() {
-    const { appName, bundleId } = this.props;
-    const newBundleId = bundleId.endsWith("." + appName)
-      ? bundleId.replace(new RegExp("." + appName + "$"), "")
-      : bundleId;
-    const iosDefIDRegEx = new RegExp(defIOSBuindleIdentifier, "g");
-    const options = {
-      files: [
-        `ios/${appName}.xcodeproj/project.pbxproj`,
-        `ios/${appName}-tvOS/Info.plist`,
-        `ios/${appName}-tvOSTests/Info.plist`
-      ],
-      from: iosDefIDRegEx,
-      to: newBundleId
-    };
-    try {
-      const changes = replace.sync(options);
-      console.log("Modified files:", changes.join(", "));
-    } catch (error) {
-      console.error("Error occurred:", error);
-    }
+    this.iosUtils.changeBundleIdIos(this.props.appName, this.props.bundleId);
     this.git.commit("Changed iOS bundleId");
   }
 
-  changePackageName() {
-    const { appName, bundleId } = this.props;
-    const newBundleId = bundleId.endsWith("." + appName)
-      ? bundleId
-      : bundleId + "." + appName;
-    const androidDefIDRegEx = new RegExp(
-      defAndroidPackageName + "." + appName,
-      "g"
+  changePackageNameAndroid() {
+    this.androidUtils.changePackageName(
+      this.props.appName,
+      this.props.bundleId
     );
-    const options = {
-      files: [
-        `android/app/build.gradle`,
-        `android/app/BUCK`,
-        `android/app/src/main/AndroidManifest.xml`,
-        `android/app/src/main/java/${defAndroidPackageName}/${appName}/MainActivity.java`,
-        `android/app/src/main/java/${defAndroidPackageName}/${appName}/MainApplication.java`
-      ],
-      from: androidDefIDRegEx,
-      to: newBundleId
-    };
-    try {
-      const changes = replace.sync(options);
-      console.log("Modified files:", changes.join(", "));
-    } catch (error) {
-      console.error("Error occurred:", error);
-    }
-    const newDirectoryStructure = newBundleId.split(".");
-    const newDirectoryStructureString = newBundleId.split(".").join("/");
-    for (let i = 0; i < newDirectoryStructure.length; i++) {
-      let path = `android/app/src/main/java`;
-      for (let j = 0; j <= i; j++) {
-        path = path + "/" + newDirectoryStructure[j];
-      }
-      this.spawnCommandSync("mkdir", [path]);
-    }
-    this.spawnCommandSync("mv", [
-      `android/app/src/main/java/${defAndroidPackageName}/${appName}/MainActivity.java`,
-      `android/app/src/main/java/${newDirectoryStructureString}/MainActivity.java`
-    ]);
-    this.spawnCommandSync("mv", [
-      `android/app/src/main/java/${defAndroidPackageName}/${appName}/MainApplication.java`,
-      `android/app/src/main/java/${newDirectoryStructureString}/MainApplication.java`
-    ]);
-    this.spawnCommandSync("rm -rf", [
-      `android/app/src/main/java/${defAndroidPackageName}/${appName}`
-    ]);
     this.git.commit("Changed android package name");
   }
 
